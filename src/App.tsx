@@ -1,6 +1,7 @@
 import "./style/App.css";
 
 function App() {
+  // 수정
   // Q.1
   const name: string = "John";
   const age: number = 25;
