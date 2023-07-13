@@ -1,3 +1,4 @@
+import { useCallback, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type RequestInputType = "text" | "date";
@@ -8,6 +9,10 @@ type RequestType = {
   title: RequestInputTitle;
   type: RequestInputType;
 };
+type WeatherType = {
+  sky: string;
+  rain: string;
+} | null;
 
 const requestList: Array<RequestType> = [
   { id: "name", title: "이름", type: "text" },
@@ -28,6 +33,40 @@ const UserInformationInput = () => {
   const day = today.getDate().toString().padStart(2, "0");
 
   const formattedDate = `${year}-${month}-${day}`;
+
+  const [weather, setWeather] = useState<WeatherType>(null);
+
+  useEffect(() => {
+    decodeWeatherCodeToImage();
+  }, [weather]);
+
+  const decodeWeatherCodeToImage = useCallback(() => {
+    if (!weather) return;
+    let imageName = "sunny";
+    let effectName = "";
+
+    switch (weather?.sky) {
+      case "1":
+        imageName = "sunny";
+        break;
+      case "3":
+        imageName = "cloudy";
+        break;
+      case "4":
+        imageName = "dark";
+        break;
+    }
+    switch (weather?.rain) {
+      case "1":
+        effectName = "rainy";
+        break;
+      case "3":
+        effectName = "snowy";
+        break;
+    }
+
+    navigate(`/select-options?q=1&sky=${imageName}&rain=${effectName}`);
+  }, [weather]);
 
   const displayInfoByHref = (pathname: string): RequestType => {
     if (pathname === "/") return requestList[0];
@@ -54,34 +93,48 @@ const UserInformationInput = () => {
 
     if (pathname === "/") navigate("/birth");
     if (pathname === "/birth") {
-      const getWeather = async (longitude: number, latitude: number) => {
-        const data = {
-          serviceKey: "",
-          pageNo: 1,
-          numOfRows: 1000,
-          dataType: "XML",
-          base_date: `${year}+${month}+${day}`,
-          base_time: "0600",
-          nx: longitude,
-          ny: latitude,
-        };
-        // const response = await fetch(
-        //   `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0?` +
-        //     new URLSearchParams(data)
-        // );
+      const getWeather = async (latitude: number, longitude: number) => {
+        const data = new URLSearchParams();
+        // const serviceKey = process.env.REACT_APP_WEATHER_SERVICE_KEY;
 
-        // console.log("response", response);
+        data.append(
+          "serviceKey",
+          "O42VRlwxKQ3QnfPv1MxTtg6XIHKtGPSeSIK808z6IwKAzHD//RS34Ti5eDG3Gc7R7qAFcRA/tJYz6WEvQ1Y6Gg=="
+        );
+        data.append("pageNo", "1");
+        data.append("base_date", `${year}${month}${day}`);
+        data.append("base_time", "0800");
+        data.append("dataType", "JSON");
+        data.append("nx", Math.round(latitude).toString());
+        data.append("ny", Math.round(longitude).toString());
+
+        await fetch(
+          `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?` +
+            data
+        )
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            const skyCode = data.response.body.items?.filter(
+              ({ category }: { category: string }) => category === "SKY"
+            );
+            const rainCode = data.response.body.items?.filter(
+              ({ category }: { category: string }) => category === "PTY"
+            );
+
+            setWeather(() => ({ sky: skyCode, rain: rainCode }));
+          })
+          .catch((e) => console.error(e));
       };
 
       navigator.geolocation.getCurrentPosition(
         (location) => {
-          getWeather(location.coords.longitude, location.coords.latitude);
-          // location.coords.latitude / longitude
+          getWeather(location.coords.latitude, location.coords.longitude);
+          e;
         },
         () => alert("오류가 발생했어요! 페이지에 다시 접속해주세요.")
       );
-
-      // navigate("/select-options?q=1")
     }
   };
 

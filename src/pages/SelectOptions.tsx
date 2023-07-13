@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+
+import sunny from "../assets/sunny.jpg";
+import cloudy from "../assets/cloudy.jpg";
+import dark from "../assets/dark.jpg";
+
 type QuestionSetType = {
   question: string;
   options: string[];
@@ -9,8 +14,8 @@ export default function SelectOptions() {
   const [searchParams] = useSearchParams();
   const questionParams = Number(searchParams.get("q"));
   const questionIndex = Number(searchParams.get("q")) - 1;
-
-  const [test, setTest] = useState();
+  const bgImage = searchParams.get("sky") ?? "";
+  const bgEffect = searchParams.get("rain") ?? "";
 
   const questionSet: QuestionSetType[] = [
     { question: "q1", options: ["1", "2", "3", "4"] },
@@ -36,6 +41,8 @@ export default function SelectOptions() {
     <>
       {questionParams <= 3 && questionParams >= 1 ? (
         <section>
+          <img src={bgImage} alt={bgImage} />
+          <img src={bgEffect} alt={bgEffect} />
           <p></p>
           <form onSubmit={handleSubmit}>
             <h1>{questionSet[questionIndex].question}</h1>
