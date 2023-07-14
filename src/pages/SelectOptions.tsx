@@ -1,17 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import sunny from "../assets/sunny.jpg";
-import cloudy from "../assets/cloudy.jpg";
-import dark from "../assets/dark.jpg";
+import sunnyImage from "../assets/sunny.jpg";
+import cloudyImage from "../assets/cloudy.jpg";
+import darkImage from "../assets/dark.jpg";
 
 type QuestionSetType = {
   question: string;
   options: string[];
 };
+
+// type TestType = {
+//   [key: string]: HTMLImageElement | undefined;
+// };
 export default function SelectOptions() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const questionParams = Number(searchParams.get("q"));
   const questionIndex = Number(searchParams.get("q")) - 1;
   const bgImage = searchParams.get("sky") ?? "";
@@ -22,6 +27,12 @@ export default function SelectOptions() {
     { question: "q2", options: ["12", "23", "34", "45"] },
     { question: "q3", options: ["134", "234", "334", "44"] },
   ];
+
+  const imageMapping = {
+    sunny: sunnyImage,
+    cloudy: cloudyImage,
+    dark: darkImage,
+  };
 
   useEffect(() => {
     if (questionParams > 3 || questionParams < 1)
@@ -41,7 +52,7 @@ export default function SelectOptions() {
     <>
       {questionParams <= 3 && questionParams >= 1 ? (
         <section>
-          <img src={bgImage} alt={bgImage} />
+          <img src={imageMapping[bgImage]} alt={bgImage} />
           <img src={bgEffect} alt={bgEffect} />
           <p></p>
           <form onSubmit={handleSubmit}>

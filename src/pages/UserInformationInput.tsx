@@ -37,13 +37,14 @@ const UserInformationInput = () => {
   const [weather, setWeather] = useState<WeatherType>(null);
 
   useEffect(() => {
+    console.log(`It's Working!`);
     decodeWeatherCodeToImage();
   }, [weather]);
 
   const decodeWeatherCodeToImage = useCallback(() => {
     if (!weather) return;
     let imageName = "sunny";
-    let effectName = "";
+    let effectName = "none";
 
     switch (weather?.sky) {
       case "1":
@@ -116,14 +117,17 @@ const UserInformationInput = () => {
             return response.json();
           })
           .then((data) => {
-            const skyCode = data.response.body.items?.filter(
+            const skyCode = data.response.body.items.item?.find(
               ({ category }: { category: string }) => category === "SKY"
             );
-            const rainCode = data.response.body.items?.filter(
+            const rainCode = data.response.body.items.item?.find(
               ({ category }: { category: string }) => category === "PTY"
             );
 
-            setWeather(() => ({ sky: skyCode, rain: rainCode }));
+            setWeather(() => ({
+              sky: skyCode?.fcstValue,
+              rain: rainCode?.fcstValue,
+            }));
           })
           .catch((e) => console.error(e));
       };
@@ -137,7 +141,7 @@ const UserInformationInput = () => {
       );
     }
   };
-
+  console.log("weather", weather);
   return (
     <main>
       <section>
